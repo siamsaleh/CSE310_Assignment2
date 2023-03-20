@@ -1,3 +1,4 @@
+import model.SectionStudentList;
 import model.Student;
 
 import java.sql.*;
@@ -87,14 +88,57 @@ public class Main {
 
             int i = 1;
             while (resultSet.next()){
-                System.out.println( i +" Section-0" + resultSet.getInt(1) + " " + resultSet.getString(2) + " " + resultSet.getInt(3) +
-                        " Seats Remaining");
+                System.out.println( i +" Section-0" + resultSet.getInt(1) + " " + resultSet.getString(2) + " " +
+                        (resultSet.getInt(3) - student_count(i)) + " Seats Remaining");
                 i++;
             }
 
+            selectCourse();
+
         }catch (Exception e){}
     }
-    
+
+    private static void selectCourse() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Select section no : ");
+        int sectionNo = scanner.nextInt();
+
+
+        try {
+            String sql = " insert into section_list (name, sid, section)"
+                    + " values (?, ?, ?)";
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, loginStudent.getName());
+            preparedStatement.setString(2, loginStudent.getSid());
+            preparedStatement.setInt(3, sectionNo);
+            preparedStatement.execute();
+
+        }catch (Exception e){}
+    }
+
+    static int student_count(int section){
+        ArrayList<SectionStudentList> studentArrayList = new ArrayList<>();
+
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select * from section_list");
+            while (resultSet.next()){
+                SectionStudentList sectionStudentList = new SectionStudentList(resultSet.getString(1),
+                        resultSet.getString(2), resultSet.getInt(3));
+                studentArrayList.add(sectionStudentList);
+            }
+        }catch (Exception e){}
+
+        int student_count = 0;
+        for (int i = 0; i < studentArrayList.size(); i++) {
+            if (studentArrayList.get(i).getSection() == section){
+                student_count++;
+            }
+        }
+        return student_count;
+    }
+
     static void createStudent(Student student){
         try {
 //            String sql = "INSERT INTO `student` (`name`, `sid`, `email`, `password`) " +
@@ -119,4 +163,6 @@ public class Main {
             System.out.println(e);
         }
     }
+
+
 }
